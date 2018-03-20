@@ -36,7 +36,10 @@ class ProxyMethod(object):
 		self._inargs  = [(arg.attrib.get("name", ""), arg.attrib["type"]) for arg in method if arg.tag == "arg" and arg.attrib.get("direction", "in") == "in"]
 		self._outargs = [arg.attrib["type"] for arg in method if arg.tag == "arg" and arg.attrib.get("direction", "in") == "out"]
 		self._sinargs  = "(" + "".join(x[1] for x in self._inargs) + ")"
-		self._soutargs = "(" + "".join(self._outargs) + ")"
+		self._soutargs = "".join(self._outargs)
+		self._ret_obj = len(self._outargs) == 1 and self._outargs[0].startswith("(")
+		if not self._ret_obj:
+			self._soutargs = "(" + self._soutargs + ")"
 
 		self_param = Parameter("self", Parameter.POSITIONAL_ONLY)
 		pos_params = []
@@ -76,7 +79,7 @@ class ProxyMethod(object):
 
 		if len(self._outargs) == 0:
 			return None
-		elif len(self._outargs) == 1:
+		elif len(self._outargs) == 1 and not self._ret_obj:
 			return ret[0]
 		else:
 			return ret
